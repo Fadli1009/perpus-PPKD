@@ -68,12 +68,13 @@
 
 if (isset($_POST['submitPengembalian'])) {
     $denda = $_POST['denda'];
-    // $kode_pengembalian = $_POST['kode_pengembalian'];
+    $kode_pengembalian = $_POST['kode_pengembalian'];
     $id_peminjaman = $_POST['id_peminjaman'];
     $tgl_kembali = $_POST['tanggal_kembali'];
     $terlambat = $_POST['total_terlambat'];
     $id_anggota = $_POST['id_anggota'];
-    $queryPengembalian = mysqli_query($koneksi, "INSERT INTO pengembalian (id_peminjaman,id_anggota,denda,tgl_pengembalian,terlambat) VALUES ($id_peminjaman,$id_anggota,$denda,$tgl_kembali,$terlambat)");
+
+    $queryPengembalian = mysqli_query($koneksi, "INSERT INTO pengembalian (kode_pengembalian,id_peminjaman,id_anggota,denda,tgl_pengembalian,terlambat) VALUES ('$kode_pengembalian',$id_peminjaman,$id_anggota,$denda,$tgl_kembali,$terlambat)");
     if ($queryPengembalian) {
         $updateStatus = mysqli_query($koneksi, "UPDATE peminjaman SET status = 2 WHERE id = $id_peminjaman");
         header("Location:?pg=pengembalian");;
@@ -83,12 +84,16 @@ $anggota = mysqli_query($koneksi, "SELECT * FROM anggota ORDER BY id DESC");
 $queryPeminjaman = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE status = 1 ORDER BY id DESC");
 
 // kode transaksi
-
-// $mysqliQuery = mysqli_query($koneksi, "SELECT max(id) as id_transaksi FROM peminjaman");
-// $kodeTransaksi = mysqli_fetch_assoc($mysqliQuery);
-// $nomorUrut = $kodeTransaksi['id_transaksi'];
-// $nomorUrut++;
-
+$query = "SELECT MAX(id) AS last_id FROM pengembalian";
+$result = mysqli_query($koneksi, $query);
+$row = mysqli_fetch_assoc($result);
+$last_id = $row['last_id'];
+$new_code = 'KB' . sprintf('%03d', $last_id + 1);
+if ($last_id === null) {
+    $new_code = 'KB001';
+} else {
+    $new_code = 'KB' . sprintf('%03d', $last_id + 1);
+}
 ?>
 <div class="container">
 
@@ -102,7 +107,16 @@ $queryPeminjaman = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE status
                         <div class="col-sm-6">
                             <div class="row mb-3">
                                 <div class="col-sm-3">
+                                    <label for="" class="form-label">Kode Pengembalian</label>
+
+                                </div>
+                                <div class="col-sm-9">
+                                    <input type="text" name="kode_pengembalian" class="form-control"
+                                        value="<?php echo $new_code; ?>" readonly>
+                                </div>
+                                <div class="col-sm-3">
                                     <label for="" class="form-label">Tanggal Kembali</label>
+
                                 </div>
                                 <div class="col-sm-9">
                                     <input type="text" name="tanggal_kembali" id="tgl-kembali" class="form-control"
